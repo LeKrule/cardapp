@@ -18,9 +18,6 @@ class CreateCartasTable extends Migration
             $table->timestamps();
             $table->string('nombre');
             $table->string('descripcion');
-            $table->string('precio')();
-
-
 
         });
     }

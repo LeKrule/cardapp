@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -59,10 +58,9 @@ class usuariosController extends Controller
             try{
                 $validator = Validator::make(json_decode($JsonData, true), [
                     'nombre' => 'required|unique:users| string',
-                    'email' => 'required|unique:users| string',
+                    'email' => 'required|unique:users| string | email:rfc,dns',
                     'password' => 'required',
-                    'rol' => 'required|in:directivo,rrhh,empleado',
-                    'salario' => 'required',
+                    'rol' => 'required|in:particular,profesional,administrador',
                     'biografia' => 'required',
 
                 ]);
@@ -79,7 +77,6 @@ class usuariosController extends Controller
                         return response()->json($response);
                     }
                     $user->rol = $Data->rol;
-                    $user->salario = $Data->salario;
                     $user->biografia = $Data->biografia;
                     $user->save();
                     $response['msg'] = " el usuario ha sido creado correctamente";

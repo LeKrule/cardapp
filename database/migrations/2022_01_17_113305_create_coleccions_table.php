@@ -16,6 +16,7 @@ class CreateColeccionsTable extends Migration
         Schema::create('coleccions', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->string('nombre')->unique();
             $table->string('simbolo');
             $table->date('fecha');
         });
