@@ -3,6 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use App\Mail\PassRecovery;
+
 
 class usuariosController extends Controller
 {
@@ -16,11 +23,10 @@ class usuariosController extends Controller
 
             try{
                 if($Data->email) {
-                    $user = Usuario::where('email', $Data->email)->first();
+                    $user = User::where('email', $Data->email)->first();
                     if($Data->email) {
                         if(Hash::check($Data->password, $user->password)) {
                             $token = Hash::make(now());
-                            $user->api_token = $token;
                             $user->save();
                             $response['msg'] = "Sesion iniciada. Token: ".$token;
                         } else {
@@ -42,5 +48,98 @@ class usuariosController extends Controller
             }
             return response()->json($response);
         }
+        public function registrar(Request $req){
+            //recoger la info del request (viene del json)
+            $JsonData = $req->getContent();
+            //pasar el Json al objeto
+            $Data = json_decode($JsonData);
+            $user = new User();
+
+            try{
+                $validator = Validator::make(json_decode($JsonData, true), [
+                    'nombre' => 'required|unique:users| string',
+                    'email' => 'required|unique:users| string',
+                    'password' => 'required',
+                    'rol' => 'required|in:directivo,rrhh,empleado',
+                    'salario' => 'required',
+                    'biografia' => 'required',
+
+                ]);
+
+                if($validator->fails()){
+                    $response = ['status'=>0, 'msg'=>$validator->errors()->first()];
+                } else {
+                    $user->nombre = $Data->nombre;
+                    $user->email = $Data->email;
+                    if(preg_match("/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{6,}/", $Data->password)){
+                        $user->password = Hash::make($Data->password);
+                    }else{
+                        $response['msg'] = " la contraseña no es segura";
+                        return response()->json($response);
+                    }
+                    $user->rol = $Data->rol;
+                    $user->salario = $Data->salario;
+                    $user->biografia = $Data->biografia;
+                    $user->save();
+                    $response['msg'] = " el usuario ha sido creado correctamente";
+                    $response['status'] = 1;
+                }
+
+            }catch (\Exception $error){
+                $response['msg'] = "Ha ocurrido un error al añadir el usuario: ".$error->getMessage();
+                $response['status'] = 0;
+            }
+            return response()->json($response);
+        }
+        public function RecuperarPass(Request $req){
+            //recoger la info del request (viene del json)
+            $JsonData = $req->getContent();
+            //pasar el Json al objeto
+            $Data = json_decode($JsonData);
+
+            $user = User::where('email',$Data->email)->first();
+
+            if($user){
+
+                $NuevaPass = Str::random(20);
+                $user->password = Hash::make($NuevaPass);
+                $user->save();
+                Mail::to($user->email)->send(new PassRecovery($NuevaPass));
+                $response['msg'] = "Contraseña cambiada correctamente: $NuevaPass";
+                $response['status'] = 1;
+
+            }else{
+                $response['msg'] = "Ctm no se encuentra el email fds kkkkk";
+                $response['status'] = 0;
+            }
+
+            return response()->json($response);
+
     //
+}
+public function CambiarPass (Request $req){
+
+    //recoger la info del request (viene del json)
+    $JsonData = $req->getContent();
+    //pasar el Json al objeto
+    $Data = json_decode($JsonData);
+
+    $usuarioQueEdita = $req->usuario;
+    $usuarioEditado = User::find($Data->user_id);
+
+
+    if( $usuarioQueEdita->id == $usuarioEditado->id) {
+        if(isset($Data->password)) $usuarioEditado->password = Hash::make($Data->password);
+        $usuarioEditado->save();
+        $response['data'] = $usuarioEditado;
+    }else{
+        $response['msg'] = "Ha ocurrido un fallo cambiando la contraseña";
+        $response['status'] = 0;
+    }
+
+
+
+    return response()->json($response);
+
+}
 }
