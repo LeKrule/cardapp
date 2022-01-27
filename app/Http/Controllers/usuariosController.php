@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use App\Mail\PassRecovery;
+
 
 
 class usuariosController extends Controller
@@ -27,6 +27,7 @@ class usuariosController extends Controller
                     if($Data->email) {
                         if(Hash::check($Data->password, $user->password)) {
                             $token = Hash::make(now());
+                            $user->api_token = $token;
                             $user->save();
                             $response['msg'] = "Sesion iniciada. Token: ".$token;
                         } else {
@@ -99,12 +100,10 @@ class usuariosController extends Controller
 
             $user = User::where('email',$Data->email)->first();
 
-            if($user){
-
+            if(isset($user)){
                 $NuevaPass = Str::random(20);
                 $user->password = Hash::make($NuevaPass);
                 $user->save();
-                Mail::to($user->email)->send(new PassRecovery($NuevaPass));
                 $response['msg'] = "Contraseña cambiada correctamente: $NuevaPass";
                 $response['status'] = 1;
 
@@ -114,32 +113,6 @@ class usuariosController extends Controller
             }
 
             return response()->json($response);
+        }
 
-    //
-}
-public function CambiarPass (Request $req){
-
-    //recoger la info del request (viene del json)
-    $JsonData = $req->getContent();
-    //pasar el Json al objeto
-    $Data = json_decode($JsonData);
-
-    $usuarioQueEdita = $req->usuario;
-    $usuarioEditado = User::find($Data->user_id);
-
-
-    if( $usuarioQueEdita->id == $usuarioEditado->id) {
-        if(isset($Data->password)) $usuarioEditado->password = Hash::make($Data->password);
-        $usuarioEditado->save();
-        $response['data'] = $usuarioEditado;
-    }else{
-        $response['msg'] = "Ha ocurrido un fallo cambiando la contraseña";
-        $response['status'] = 0;
-    }
-
-
-
-    return response()->json($response);
-
-}
 }
