@@ -121,7 +121,53 @@ class CartasController extends Controller
         }
         return response()->json($response);
     }
+    /*
+    -importar el modelo (carta, pertenece y coleccion)
+    -asociar id carta a a id coleccion
 
+
+    */
+
+    public function AñadirCarta(Request $req) {
+        $response = ['status'=> 1, 'msg'=>''];
+        //recoger la info del request (viene del json)
+        $JsonData = $req->getContent();
+        //pasar el Json al objeto
+        $Data = json_decode($JsonData);
+
+
+
+
+        try {
+            $validator = Validator::make(json_decode($JsonData, true), [
+                'carta_id' => 'required:cartas| integer',
+                'coleccion_id' => 'required:coleccions| integer',
+
+            ]);
+
+            if($validator->fails()){
+                $response = ['status'=>0, 'msg'=>$validator->errors()->first()];
+            } else {
+                $coleccion = Coleccion::find($Data->coleccion_id);
+                $carta = Carta::find($Data->carta_id);
+                if(isset($coleccion)&&isset($carta)){
+                    $pertenece = new Pertenece();
+                    $pertenece->coleccion_id = $Data->coleccion_id;//asocio la carta a una coleccion
+                    $pertenece->carta_id = $carta->id;
+                    $pertenece->save();
+                }else{
+                    $response['msg'] = "Ha ocurrido un error al añadir la carta a la coleccion";
+                    $response['status'] = 0;
+                }
+            }
+
+        } catch (\Exception $error){
+            $response['msg'] = "Ha ocurrido un error al añadir la carta a la coleccion : ".$error->getMessage();
+            $response['status'] = 0;
+        }
+        return response()->json($response);
+
+    }
 /*
     public function plantilla(Request $req) {
         $response = ['status'=> 1, 'msg'=>''];
