@@ -57,28 +57,27 @@ class usuariosController extends Controller
 
             try{
                 $validator = Validator::make(json_decode($JsonData, true), [
-                    'nombre' => 'required|unique:users| string',
-                    'email' => 'required|unique:users| string | email:rfc,dns',
+                    'nombre' => 'required|unique:usuarios| string',
+                    'email' => 'required|unique:usuarios| string | email:rfc,dns',
                     'password' => 'required',
                     'rol' => 'required|in:particular,profesional,administrador',
-                    'biografia' => 'required',
+
 
                 ]);
 
                 if($validator->fails()){
                     $response = ['status'=>0, 'msg'=>$validator->errors()->first()];
                 } else {
-                    $user->nombre = $Data->nombre;
+                    $user->nombre = $Data->nombre;// guaardo el nombre en la base de datos
                     $user->email = $Data->email;
-                    if(preg_match("/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{6,}/", $Data->password)){
-                        $user->password = Hash::make($Data->password);
+                    if(preg_match("/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{6,}/", $Data->password)){//se le indica que la contraseña debe tener unas caracteristicas para que sea segura
+                        $user->password = Hash::make($Data->password);// cifro la contraseña
                     }else{
                         $response['msg'] = " la contraseña no es segura";
                         return response()->json($response);
                     }
                     $user->rol = $Data->rol;
-                    $user->biografia = $Data->biografia;
-                    $user->save();
+                    $user->save(); // guardo los datos en el usuario
                     $response['msg'] = " el usuario ha sido creado correctamente";
                     $response['status'] = 1;
                 }
@@ -98,9 +97,9 @@ class usuariosController extends Controller
             $user = User::where('email',$Data->email)->first();
 
             if(isset($user)){
-                $NuevaPass = Str::random(20);
-                $user->password = Hash::make($NuevaPass);
-                $user->save();
+                $NuevaPass = Str::random(20); // genera una nueva contrasseña
+                $user->password = Hash::make($NuevaPass); // la cifra
+                $user->save();// se guarda en el susuario
                 $response['msg'] = "Contraseña cambiada correctamente: $NuevaPass";
                 $response['status'] = 1;
 

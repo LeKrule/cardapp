@@ -14,17 +14,19 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::put('login', [UsersController::class, 'login']);
-Route::get('registrar', [UsersController::class, 'registrarauto']);
+Route::put('registrar', [UsuariosController::class, 'registrar']);
+Route::put('login', [UsuariosController::class, 'login']);
+Route::put('RecuperarPass', [UsuariosController::class, 'RecuperarPass']);
 
+Route::put('buscarycomprar', [VentasController::class, 'buscarycomprar']);
 
-Route::prefix('users')->group(function(){
-    Route::middleware(['auth-api', 'auth-role'])->put('registrar', [UsersController::class, 'registrar']);
-    Route::middleware(['auth-api', 'auth-role'])->put('detalle/{id}', [UsersController::class, 'DetallesUsuario']);
-    Route::middleware(['auth-api', 'auth-role'])->put('listar', [UsersController::class, 'listar']);
-    Route::middleware(['auth-api', 'auth-role'])->put('consultar', [UsersController::class, 'consultar']);
-    Route::middleware(['auth-api', 'auth-role'])->put('perfil', [UsersController::class, 'perfil']);
-    Route::middleware(['auth-api', 'auth-role'])->put('editar', [UsersController::class, 'editar']);
-    Route::middleware(['auth-api'])->put('perfil', [UsersController::class, 'perfil']);
-    Route::put('PassRecovery', [UsersController::class, 'RecuperarPass']);
+Route::middleware(["UserNoAdmin"])->group(function () {
+    Route::put('vender', [VentasController::class, 'vender']);
+    Route::put('buscar', [VentasController::class, 'buscar']);
+});
+
+Route::middleware(["UserAdmin"])->group(function () {
+    Route::put('CrearCarta', [cartasController::class, 'CrearCarta']);
+    Route::put('CrearColecion', [cartasController::class, 'CrearColecion']);
+    Route::put('AñadirCarta', [cartasController::class, 'AñadirCarta']);
 });

@@ -97,7 +97,7 @@ class CartasController extends Controller
                         $response['status'] = 0;
                     }
                 } else {
-                    if($carta) {
+                    if($carta) { // en caso de que quiera crear una coleccion y añadirle una carta ya existente se hace esta funcion
                         $coleccion = new coleccion();
                         $coleccion->nombre = $Data->nombre;
                         $coleccion->simbolo = $Data->simbolo;

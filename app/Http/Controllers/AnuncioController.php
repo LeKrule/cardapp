@@ -49,7 +49,7 @@ class AnuncioController extends Controller
         $data = json_decode($JsonData);
 
         $validator = Validator::make(json_decode($data, true), [
-            'carta_nombre' => 'required|string',
+            'carta_nombre' => 'required|string', //
         ]);
 
         if ($validator->fails()) {
